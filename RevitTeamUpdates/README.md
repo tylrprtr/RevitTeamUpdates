@@ -207,8 +207,3 @@ Compared to the pyRevit version:
 ## Support
 
 For issues or questions, contact Tyler Porter.
-
-## License
-
-Copyright (c) 2025 Pivot North Architecture
-All rights reserved.
