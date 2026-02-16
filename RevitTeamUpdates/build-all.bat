@@ -47,25 +47,16 @@ if errorlevel 1 (
 echo.
 
 echo ============================================================
-echo  Build complete! Installing to Revit Addins folders...
+echo  Build complete!
 echo ============================================================
 echo.
-
-:: Install to standard Revit Addins folders
-set ADDINS_ROOT=%APPDATA%\Autodesk\Revit\Addins
-
-for %%V in (2024 2025 2026) do (
-    if exist "%~dp0TeamUpdates.bundle\Contents\%%V" (
-        echo Installing for Revit %%V...
-        if not exist "%ADDINS_ROOT%\%%V" mkdir "%ADDINS_ROOT%\%%V"
-        xcopy /y /q "%~dp0TeamUpdates.bundle\Contents\%%V\*" "%ADDINS_ROOT%\%%V\" >nul
-    )
-)
-
+echo Bundle location:
+echo   %~dp0TeamUpdates.bundle\
 echo.
-echo ============================================================
-echo  Installed to: %ADDINS_ROOT%\{2024,2025,2026}\
-echo  Restart Revit to load the add-in.
+echo To install, copy the TeamUpdates.bundle folder to:
+echo   C:\ProgramData\Autodesk\ApplicationPlugins\
+echo.
+echo Revit will automatically load the correct version on startup.
 echo ============================================================
 
 endlocal
