@@ -1,0 +1,83 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+    <Configurations>Debug;Release</Configurations>
+    <LangVersion>latest</LangVersion>
+    <UseWPF>true</UseWPF>
+    <OutputPath>$(ProjectDir)</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <NoWarn>$(NoWarn);MSB3277;MSB3276</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="icons\**\*.png" />
+  </ItemGroup>
+
+  <Target Name="AfterClean">
+    <Delete Files="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.addin" />
+    <Delete Files="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.dll" />
+    <RemoveDir Directories="$(ProjectDir)TeamUpdates.bundle" ContinueOnError="true" />
+    <RemoveDir Directories="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.bundle" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="AfterBuild">
+    <Message Text="AfterBuild: creating TeamUpdates.bundle in project root" Importance="high" />
+
+    <!-- Define bundle directories -->
+    <PropertyGroup>
+      <BundleDir>$(ProjectDir)TeamUpdates.bundle\</BundleDir>
+      <BundleIconsDir>$(BundleDir)icons\</BundleIconsDir>
+    </PropertyGroup>
+
+    <MakeDir Directories="$(BundleDir)" />
+    <MakeDir Directories="$(BundleIconsDir)" />
+
+    <!-- Copy addin manifest and built assembly into bundle -->
+    <Copy SourceFiles="$(ProjectDir)TeamUpdates.addin" DestinationFolder="$(BundleDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BundleDir)" />
+
+    <!-- Copy icons into bundle/icons -->
+    <ItemGroup>
+      <IconFiles Include="$(ProjectDir)icons\**\*.png" />
+    </ItemGroup>
+    <Copy SourceFiles="@(IconFiles)" DestinationFolder="$(BundleIconsDir)" SkipUnchangedFiles="true" />
+
+    <Message Text="AfterBuild: TeamUpdates.bundle created at $(BundleDir)" Importance="high" />
+
+    <!-- Attempt to deploy bundle to Revit Addins folder for testing -->
+    <!-- Deploy bundle to Revit Addins folder (attempt) -->
+    <RemoveDir Directories="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.bundle" ContinueOnError="true" />
+    <Copy SourceFiles="$(BundleDir)**\*.*" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.bundle\" />
+
+    <Message Text="AfterBuild: deployed TeamUpdates.bundle to Revit Addins (if accessible)" Importance="high" />
+  </Target>
+
+</Project>

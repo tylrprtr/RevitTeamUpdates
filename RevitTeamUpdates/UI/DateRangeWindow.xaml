@@ -1,0 +1,51 @@
+<Window x:Class="TeamUpdates.UI.DateRangeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Select Date Range" 
+        Height="250" 
+        Width="400"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Instructions -->
+        <TextBlock Grid.Row="0" 
+                   Text="Select the time range for the changelog report:" 
+                   FontSize="12" 
+                   Margin="0,0,0,10"
+                   TextWrapping="Wrap"/>
+
+        <!-- Preset Options -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <Label Content="Quick Select:" FontWeight="Bold" Margin="0,0,0,5"/>
+            <ComboBox x:Name="PresetComboBox" SelectedIndex="1">
+                <ComboBoxItem Content="Last Day (24 hours)"/>
+                <ComboBoxItem Content="Last Week (7 days)"/>
+                <ComboBoxItem Content="Last 2 Weeks (14 days)"/>
+                <ComboBoxItem Content="Last Month (30 days)"/>
+            </ComboBox>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="OK" 
+                    Width="80" 
+                    Height="30" 
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    Click="OkButton_Click"/>
+            <Button Content="Cancel" 
+                    Width="80" 
+                    Height="30"
+                    IsCancel="True"
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Team Updates</Name>
+    <Assembly>TeamUpdates.dll</Assembly>
+    <FullClassName>TeamUpdates.Application</FullClassName>
+    <ClientId>b8f5e8c0-4f3a-4e9d-8c7b-9f2a1e3d4c5b</ClientId>
+    <VendorId>PVNT</VendorId>
+    <VendorDescription>Pivot North Architecture</VendorDescription>
+    <VisibilityMode>NotVisibleWhenNoActiveDocument</VisibilityMode>
+  </AddIn>
+</RevitAddIns>

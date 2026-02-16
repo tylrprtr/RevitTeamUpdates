@@ -1,0 +1,47 @@
+<Window x:Class="TeamUpdates.UI.ChangelogReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sync Changelog Report" 
+        Height="600" 
+        Width="800"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanResize">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Report Text -->
+        <ScrollViewer Grid.Row="0" 
+                     VerticalScrollBarVisibility="Auto" 
+                     Margin="0,0,0,10">
+            <TextBlock x:Name="ReportTextBlock"
+                      FontFamily="Consolas"
+                      FontSize="11"
+                      Padding="5"
+                      TextWrapping="Wrap"/>
+        </ScrollViewer>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="1" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Copy to Clipboard" 
+                    Width="120" 
+                    Height="30" 
+                    Margin="0,0,10,0"
+                    Click="CopyButton_Click"/>
+            <Button Content="Export to File" 
+                    Width="120" 
+                    Height="30" 
+                    Margin="0,0,10,0"
+                    Click="ExportButton_Click"/>
+            <Button Content="Close" 
+                    Width="80" 
+                    Height="30"
+                    IsCancel="True"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
