@@ -1,16 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- Set RevitVersion via command line: dotnet build /p:RevitVersion=2024 -->
+    <RevitVersion Condition="'$(RevitVersion)' == ''">2025</RevitVersion>
     <PlatformTarget>x64</PlatformTarget>
     <Configurations>Debug;Release</Configurations>
     <LangVersion>latest</LangVersion>
     <UseWPF>true</UseWPF>
-    <OutputPath>$(ProjectDir)</OutputPath>
+    <OutputPath>bin\$(Configuration)\$(RevitVersion)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <NoWarn>$(NoWarn);MSB3277;MSB3276</NoWarn>
   </PropertyGroup>
+
+  <!-- Revit 2024: .NET Framework 4.8 -->
+  <PropertyGroup Condition="'$(RevitVersion)' == '2024'">
+    <TargetFramework>net48</TargetFramework>
+  </PropertyGroup>
+
+  <!-- Revit 2025/2026: .NET 8.0 -->
+  <PropertyGroup Condition="'$(RevitVersion)' == '2025' Or '$(RevitVersion)' == '2026'">
+    <TargetFramework>net8.0-windows</TargetFramework>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -26,13 +38,19 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
+  <!-- System.ValueTuple needed for .NET Framework 4.8 (value tuple syntax in ChangelogManager) -->
+  <ItemGroup Condition="'$(RevitVersion)' == '2024'">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+
+  <!-- Revit API references - version-specific paths -->
   <ItemGroup>
     <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit $(RevitVersion)\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPIUI.dll</HintPath>
+      <HintPath>C:\Program Files\Autodesk\Revit $(RevitVersion)\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -41,43 +59,33 @@
     <EmbeddedResource Include="icons\**\*.png" />
   </ItemGroup>
 
-  <Target Name="AfterClean">
-    <Delete Files="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.addin" />
-    <Delete Files="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.dll" />
-    <RemoveDir Directories="$(ProjectDir)TeamUpdates.bundle" ContinueOnError="true" />
-    <RemoveDir Directories="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.bundle" ContinueOnError="true" />
-  </Target>
-
+  <!-- After build: assemble output into .bundle structure -->
   <Target Name="AfterBuild">
-    <Message Text="AfterBuild: creating TeamUpdates.bundle in project root" Importance="high" />
-
-    <!-- Define bundle directories -->
     <PropertyGroup>
       <BundleDir>$(ProjectDir)TeamUpdates.bundle\</BundleDir>
-      <BundleIconsDir>$(BundleDir)icons\</BundleIconsDir>
+      <BundleContentsDir>$(BundleDir)Contents\$(RevitVersion)\</BundleContentsDir>
     </PropertyGroup>
 
-    <MakeDir Directories="$(BundleDir)" />
-    <MakeDir Directories="$(BundleIconsDir)" />
+    <MakeDir Directories="$(BundleContentsDir)" />
 
-    <!-- Copy addin manifest and built assembly into bundle -->
-    <Copy SourceFiles="$(ProjectDir)TeamUpdates.addin" DestinationFolder="$(BundleDir)" />
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BundleDir)" />
-
-    <!-- Copy icons into bundle/icons -->
+    <!-- Copy built assembly and dependencies into bundle -->
     <ItemGroup>
-      <IconFiles Include="$(ProjectDir)icons\**\*.png" />
+      <BuildOutputFiles Include="$(TargetDir)**\*.dll" />
+      <BuildOutputFiles Include="$(TargetDir)**\*.json" />
     </ItemGroup>
-    <Copy SourceFiles="@(IconFiles)" DestinationFolder="$(BundleIconsDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(BuildOutputFiles)" DestinationFolder="$(BundleContentsDir)" SkipUnchangedFiles="true" />
 
-    <Message Text="AfterBuild: TeamUpdates.bundle created at $(BundleDir)" Importance="high" />
+    <!-- Copy .addin manifest into bundle (same for all versions) -->
+    <Copy SourceFiles="$(ProjectDir)TeamUpdates.addin" DestinationFolder="$(BundleContentsDir)" SkipUnchangedFiles="true" />
 
-    <!-- Attempt to deploy bundle to Revit Addins folder for testing -->
-    <!-- Deploy bundle to Revit Addins folder (attempt) -->
-    <RemoveDir Directories="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.bundle" ContinueOnError="true" />
-    <Copy SourceFiles="$(BundleDir)**\*.*" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2025\TeamUpdates.bundle\" />
+    <!-- Copy PackageContents.xml to bundle root -->
+    <Copy SourceFiles="$(ProjectDir)PackageContents.xml" DestinationFolder="$(BundleDir)" SkipUnchangedFiles="true" />
 
-    <Message Text="AfterBuild: deployed TeamUpdates.bundle to Revit Addins (if accessible)" Importance="high" />
+    <Message Text="Built TeamUpdates for Revit $(RevitVersion) → $(BundleContentsDir)" Importance="high" />
+  </Target>
+
+  <Target Name="AfterClean">
+    <RemoveDir Directories="$(ProjectDir)TeamUpdates.bundle" ContinueOnError="true" />
   </Target>
 
 </Project>
