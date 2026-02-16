@@ -60,7 +60,7 @@
   </ItemGroup>
 
   <!-- After build: assemble output into .bundle structure -->
-  <Target Name="AfterBuild">
+  <Target Name="CopyToBundle" AfterTargets="Build">
     <PropertyGroup>
       <BundleDir>$(ProjectDir)TeamUpdates.bundle\</BundleDir>
       <BundleContentsDir>$(BundleDir)Contents\$(RevitVersion)\</BundleContentsDir>
@@ -84,7 +84,7 @@
     <Message Text="Built TeamUpdates for Revit $(RevitVersion) → $(BundleContentsDir)" Importance="high" />
   </Target>
 
-  <Target Name="AfterClean">
+  <Target Name="CleanBundle" AfterTargets="Clean">
     <RemoveDir Directories="$(ProjectDir)TeamUpdates.bundle" ContinueOnError="true" />
   </Target>
 
