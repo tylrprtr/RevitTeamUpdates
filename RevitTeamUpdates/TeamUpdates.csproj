@@ -43,16 +43,20 @@
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
 
-  <!-- Revit API references - version-specific paths -->
-  <ItemGroup>
-    <Reference Include="RevitAPI">
-      <HintPath>C:\Program Files\Autodesk\Revit $(RevitVersion)\RevitAPI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>C:\Program Files\Autodesk\Revit $(RevitVersion)\RevitAPIUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
+  <!-- Revit API via NuGet (no local Revit install required to build) -->
+  <ItemGroup Condition="'$(RevitVersion)' == '2024'">
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2024.*" IncludeAssets="compile" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2024.*" IncludeAssets="compile" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RevitVersion)' == '2025'">
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2025.*" IncludeAssets="compile" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2025.*" IncludeAssets="compile" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(RevitVersion)' == '2026'">
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2026.*" IncludeAssets="compile" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2026.*" IncludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,7 +64,7 @@
   </ItemGroup>
 
   <!-- After build: assemble output into .bundle structure -->
-  <Target Name="AfterBuild">
+  <Target Name="CopyToBundle" AfterTargets="Build">
     <PropertyGroup>
       <BundleDir>$(ProjectDir)TeamUpdates.bundle\</BundleDir>
       <BundleContentsDir>$(BundleDir)Contents\$(RevitVersion)\</BundleContentsDir>
@@ -84,7 +88,7 @@
     <Message Text="Built TeamUpdates for Revit $(RevitVersion) → $(BundleContentsDir)" Importance="high" />
   </Target>
 
-  <Target Name="AfterClean">
+  <Target Name="CleanBundle" AfterTargets="Clean">
     <RemoveDir Directories="$(ProjectDir)TeamUpdates.bundle" ContinueOnError="true" />
   </Target>
 
