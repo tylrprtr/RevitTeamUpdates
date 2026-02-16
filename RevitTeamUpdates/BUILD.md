@@ -4,175 +4,144 @@
 
 1. **Visual Studio 2022** (Community, Professional, or Enterprise)
    - Install workload: ".NET desktop development"
-   
-2. **Autodesk Revit 2025**
 
-3. **.NET 8.0 SDK**
+2. **Autodesk Revit 2024, 2025, and/or 2026**
+
+3. **.NET 8.0 SDK** (for Revit 2025/2026)
    - Download from: https://dotnet.microsoft.com/download/dotnet/8.0
    - Or install via Visual Studio Installer
 
+4. **.NET Framework 4.8 Developer Pack** (for Revit 2024)
+   - Download from: https://dotnet.microsoft.com/download/dotnet-framework/net48
+
 ## Build Steps
 
-### Method 1: Using Visual Studio (Recommended)
+### Method 1: Build All Versions (Recommended)
 
-1. **Open the project**
-   ```
-   Double-click TeamUpdates.csproj or open in Visual Studio
-   ```
-
-2. **Verify Revit API paths** (if needed)
-   - Open `TeamUpdates.csproj` in text editor
-   - Verify these paths match your Revit installation:
-     ```xml
-     <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
-     <HintPath>C:\Program Files\Autodesk\Revit 2025\RevitAPIUI.dll</HintPath>
-     ```
-
-3. **Restore NuGet packages**
-   - Visual Studio should do this automatically
-   - Or: Right-click solution → "Restore NuGet Packages"
-
-4. **Build the solution**
-   - Press `F6` or `Ctrl+Shift+B`
-   - Or: Menu → Build → Build Solution
-
-5. **Check output**
-   - Build output will be in `bin\Debug\` or `bin\Release\`
-   - Post-build event automatically copies files to Revit Add-ins folder
-
-6. **Restart Revit**
-   - Close and reopen Revit
-   - Look for "Team Updates" tab in ribbon
-
-### Method 2: Using Command Line
+Run the batch script to build for Revit 2024, 2025, and 2026 in one step:
 
 ```batch
-# Restore NuGet packages
-dotnet restore TeamUpdates.csproj
-
-# Build (Debug)
-msbuild TeamUpdates.csproj /p:Configuration=Debug
-
-# Build (Release - recommended for production)
-msbuild TeamUpdates.csproj /p:Configuration=Release
+build-all.bat
 ```
 
-## First Time Setup
+This produces a ready-to-deploy `TeamUpdates.bundle\` folder.
 
-### If Building for Different Revit Version
+### Method 2: Build for a Specific Revit Version
 
-**Revit 2025:** Uses .NET 8.0 (current project configuration)
+```batch
+:: Build for Revit 2024 (.NET Framework 4.8)
+dotnet build TeamUpdates.csproj -c Release /p:RevitVersion=2024
 
-**Revit 2024 and earlier:** Use .NET Framework 4.8
+:: Build for Revit 2025 (.NET 8.0)
+dotnet build TeamUpdates.csproj -c Release /p:RevitVersion=2025
 
-To adapt for Revit 2024:
+:: Build for Revit 2026 (.NET 8.0)
+dotnet build TeamUpdates.csproj -c Release /p:RevitVersion=2026
+```
 
-1. Update .csproj file:
-   ```xml
-   <TargetFramework>net48</TargetFramework>
+### Method 3: Using Visual Studio
+
+1. **Open** `TeamUpdates.csproj` in Visual Studio
+2. By default, it builds for Revit 2025
+3. To change the target version, edit the project file or pass `/p:RevitVersion=2024` in build options
+4. Build with `F6` or `Ctrl+Shift+B`
+
+## Deployment
+
+### Using the .bundle (Recommended)
+
+After building, a `TeamUpdates.bundle` folder is created in the project directory with this structure:
+
+```
+TeamUpdates.bundle/
+├── PackageContents.xml
+└── Contents/
+    ├── 2024/
+    │   ├── TeamUpdates.addin
+    │   ├── TeamUpdates.dll
+    │   └── Newtonsoft.Json.dll
+    ├── 2025/
+    │   ├── TeamUpdates.addin
+    │   ├── TeamUpdates.dll
+    │   └── Newtonsoft.Json.dll
+    └── 2026/
+        ├── TeamUpdates.addin
+        ├── TeamUpdates.dll
+        └── Newtonsoft.Json.dll
+```
+
+**To install:**
+
+1. Copy the entire `TeamUpdates.bundle` folder to:
    ```
-   (change from `net8.0-windows` to `net48`)
-
-2. Update Revit API paths:
-   ```xml
-   <HintPath>C:\Program Files\Autodesk\Revit 2024\RevitAPI.dll</HintPath>
-   <HintPath>C:\Program Files\Autodesk\Revit 2024\RevitAPIUI.dll</HintPath>
+   C:\ProgramData\Autodesk\ApplicationPlugins\
    ```
+2. Restart Revit
+3. The "Team Updates" tab appears in the ribbon
 
-3. Update post-build copy destination:
-   ```xml
-   <Target Name="AfterBuild">
-     <Copy SourceFiles="$(TargetDir)TeamUpdates.dll" 
-           DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2024" />
-     <Copy SourceFiles="$(ProjectDir)TeamUpdates.addin" 
-           DestinationFolder="$(AppData)\Autodesk\Revit\Addins\2024" />
-   </Target>
+Revit automatically reads `PackageContents.xml` and loads the correct version-specific DLL.
+
+### Manual Deployment (Alternative)
+
+If you prefer to deploy for a single Revit version manually:
+
+1. Build for the target version (e.g., `/p:RevitVersion=2025`)
+2. Copy `TeamUpdates.dll` and `TeamUpdates.addin` from `TeamUpdates.bundle\Contents\2025\` to:
    ```
+   %APPDATA%\Autodesk\Revit\Addins\2025\
+   ```
+3. Also copy `Newtonsoft.Json.dll` to the same folder
+4. Restart Revit
 
-4. Rebuild solution
+## Revit API Paths
+
+The build expects Revit API DLLs at the default install location:
+
+| Version | Path |
+|---------|------|
+| 2024 | `C:\Program Files\Autodesk\Revit 2024\RevitAPI.dll` |
+| 2025 | `C:\Program Files\Autodesk\Revit 2025\RevitAPI.dll` |
+| 2026 | `C:\Program Files\Autodesk\Revit 2026\RevitAPI.dll` |
+
+You only need the API DLLs for the versions you're building. If you don't have a specific Revit version installed, skip building for that version and use `dotnet build /p:RevitVersion=XXXX` instead of `build-all.bat`.
 
 ## Troubleshooting Build Issues
 
 ### "Could not find RevitAPI.dll"
 - Verify Revit is installed at the expected path
-- Update HintPath in .csproj to match your installation
+- You only need the Revit versions installed that you want to build for
+- Use `/p:RevitVersion=XXXX` to build only for versions you have
 
 ### "Newtonsoft.Json not found"
-- Right-click solution → Manage NuGet Packages
-- Search for "Newtonsoft.Json"
-- Install version 13.0.3 or later
-
-### "Post-build event failed"
-- Check that you have write permissions to the Revit Add-ins folder
-- If running Visual Studio as non-admin, you may need to manually copy files
+- Run `dotnet restore TeamUpdates.csproj` to restore NuGet packages
 
 ### Build succeeds but add-in doesn't load in Revit
-1. Check Revit's Add-In Manager (Manage tab → Add-Ins button)
-2. Look for error messages
-3. Check journal file: `%LOCALAPPDATA%\Autodesk\Revit\Autodesk Revit 2025\Journals`
-
-## Output Files
-
-After successful build, these files should be in your Revit Add-ins folder:
-- `%APPDATA%\Autodesk\Revit\Addins\2025\TeamUpdates.dll`
-- `%APPDATA%\Autodesk\Revit\Addins\2025\TeamUpdates.addin`
+1. Verify the bundle is in `C:\ProgramData\Autodesk\ApplicationPlugins\`
+2. Check Revit's Add-In Manager (Manage tab > Add-Ins button)
+3. Check journal file: `%LOCALAPPDATA%\Autodesk\Revit\Autodesk Revit 20XX\Journals`
 
 ## Development Tips
 
 ### Debug Mode
-- Faster builds
-- Includes debug symbols
+- Faster builds, includes debug symbols
 - Can attach Visual Studio debugger to Revit process
-- Larger file size
 
 ### Release Mode
-- Optimized code
-- Smaller file size
-- Slightly faster execution
-- Use for distribution
+- Optimized and smaller — use for distribution
 
 ### Debugging in Visual Studio
-1. Build in Debug mode
+1. Build in Debug mode for a specific version
 2. Start Revit normally
-3. In Visual Studio: Debug → Attach to Process
-4. Select Revit.exe
-5. Set breakpoints in your code
-6. Trigger the command in Revit
-
-### Hot Reload During Development
-Unfortunately, Revit locks the DLL once loaded. To update:
-1. Close Revit
-2. Rebuild solution
-3. Restart Revit
-
-To speed this up during development:
-- Keep a test model open
-- Save frequently
-- Use quick test workflows
+3. In Visual Studio: Debug > Attach to Process > Select Revit.exe
+4. Set breakpoints and trigger the command in Revit
 
 ## Distribution
 
 ### For Your Team
-1. Build in Release mode
-2. Collect these files:
-   - `TeamUpdates.dll` (from bin\Release)
-   - `TeamUpdates.addin`
-3. Share with team members
-4. Team members copy to their Add-ins folder
-
-### Creating an Installer (Optional)
-Consider using:
-- **Inno Setup** - Free Windows installer creator
-- **WiX Toolset** - MSI installer creation
-- **ClickOnce** - Simple deployment option
-
-## Next Steps
-
-After successful build:
-1. Test both commands (Sync and View)
-2. Verify changelog files are created
-3. Test with existing pyRevit changelogs
-4. Review MIGRATION.md for rollout strategy
+1. Run `build-all.bat` (builds Release for all versions)
+2. Share the `TeamUpdates.bundle` folder
+3. Team members copy it to `C:\ProgramData\Autodesk\ApplicationPlugins\`
+4. Restart Revit — done
 
 ## Need Help?
 
