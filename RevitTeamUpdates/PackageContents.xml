@@ -10,8 +10,9 @@
 
   <CompanyDetails Name="Pivot North Architecture" />
 
+  <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="2024" SeriesMax="2026" />
+
   <Components Description="Team Updates components">
-    <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="2024" SeriesMax="2026" />
 
     <ComponentEntry ModuleName="./Contents/2024/TeamUpdates.addin">
       <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="2024" SeriesMax="2024" />
